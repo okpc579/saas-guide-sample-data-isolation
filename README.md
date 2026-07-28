@@ -64,7 +64,22 @@ HTTP 요청
 ./mvnw clean test
 ```
 
-PostgreSQL 데이터베이스와 비소유권 애플리케이션 역할을 준비한 뒤 실행한다.
+기본 설정은 이미 실행 중인 PostgreSQL 서버에 접속할 뿐, PostgreSQL 서버나
+`saas_sample` 데이터베이스를 자동으로 만들지는 않는다. 따라서 기본값을 사용할
+때는 최초 한 번 PostgreSQL 관리자 계정으로 다음 스크립트를 실행해야 한다.
+
+```bash
+psql -U postgres -d postgres -f db/create-local-database.sql
+```
+
+이 스크립트는 로컬 데모용 로그인 역할 `saas_sample_app`과 그 역할이 소유하는
+`saas_sample` 데이터베이스가 없을 때만 생성한다. 그 후 애플리케이션을 실행하면
+Flyway가 해당 데이터베이스 안에 `service_request` 테이블, 인덱스, 유일성 제약과
+RLS 정책을 자동으로 생성한다. 이미 사용할 데이터베이스가 있다면 스크립트를
+실행하지 않고 `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`를 그 환경에 맞게 지정하면
+된다.
+
+PostgreSQL 데이터베이스와 애플리케이션 역할을 준비한 뒤 실행한다.
 
 ```bash
 export DB_URL='jdbc:postgresql://localhost:5432/saas_sample'
@@ -106,10 +121,12 @@ export DB_PASSWORD='local-demo-password' # 로컬 데모 값
 
 - `src/main/resources/db/migration/postgresql/V1__create_service_request_with_rls.sql`: 테이블, 상태 CHECK, `(tenant_id, request_no)` 유일성, tenant/created 인덱스, 강제 RLS 정책을 한 독립 V1에 구성한다.
 - `src/test/resources/db/migration/h2/V1__create_service_request.sql`: H2가 이해하는 동일 테이블/제약 구조다.
+- `db/create-local-database.sql`: PostgreSQL 관리자 연결에서 기본 데모 역할과 데이터베이스를 최초 한 번 생성한다. Flyway보다 먼저 실행하며 애플리케이션 테이블은 만들지 않는다.
 - `db/verify-data-isolation.sql`: `psql`에서 tenant-a/tenant-b 컨텍스트를 전환해 가시성과 다른 tenant INSERT 차단을 수동 확인한다.
 - `db/cleanup-demo-data.sql`: 각 tenant 컨텍스트에서 데모 행을 정리한다.
 
 ```bash
+psql -U postgres -d postgres -f db/create-local-database.sql
 psql "$DB_URL" -U "$DB_USERNAME" -f db/verify-data-isolation.sql
 psql "$DB_URL" -U "$DB_USERNAME" -f db/cleanup-demo-data.sql
 ```
