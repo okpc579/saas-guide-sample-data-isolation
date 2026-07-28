@@ -1,0 +1,324 @@
+{
+  "info": {
+    "name": "3.3 공유 스키마 데이터 격리",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. 정상 처리",
+      "item": [
+        {
+          "name": "01. 요청 등록",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{tenant_id}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"requestNo\": \"POSTMAN-001\", \"title\": \"격리 확인\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const response = pm.response.json();",
+                  "pm.expect(response.tenantId).to.eql(pm.environment.get(\"tenant_id\"));",
+                  "pm.environment.set(\"request_id\", response.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02. 현재 테넌트 목록",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{tenant_id}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.expect(pm.response.json().every(v => v.tenantId === pm.environment.get(\"tenant_id\"))).to.be.true;"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03. 단건 조회",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{tenant_id}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests/{{request_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests",
+                "{{request_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. 격리 및 오류",
+      "item": [
+        {
+          "name": "01. 다른 테넌트에서 같은 번호 등록",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "tenant-b"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"requestNo\": \"POSTMAN-001\", \"title\": \"tenant-b도 허용\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.expect(pm.response.json().tenantId).to.eql(\"tenant-b\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02. 같은 테넌트 중복 번호",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{tenant_id}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"requestNo\": \"POSTMAN-001\", \"title\": \"중복\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "pm.expect(pm.response.json().code).to.eql(\"DUPLICATE_REQUEST_NO\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03. 다른 테넌트 ID 조회",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "tenant-b"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests/{{request_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests",
+                "{{request_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "pm.expect(pm.response.json().code).to.eql(\"RESOURCE_NOT_FOUND\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04. 본문 tenantId 거부",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{tenant_id}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/data-isolation/service-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "service-requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"requestNo\": \"BAD\", \"title\": \"bad\", \"tenantId\": \"tenant-b\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.expect(pm.response.json().code).to.eql(\"INVALID_REQUEST\");"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
