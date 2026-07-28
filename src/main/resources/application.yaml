@@ -1,6 +1,9 @@
 spring:
   application:
     name: saas-guide-sample-data-isolation
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/saas_sample}
     username: ${DB_USERNAME:saas_sample_app}
