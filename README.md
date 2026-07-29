@@ -2,9 +2,7 @@
 
 ## 1. 프로젝트 요약
 
-이 저장소는 **3.3 공유 스키마 데이터 격리**를 독립적으로 학습하는 교육·참조용 Spring Boot 프로젝트다. 참고 기준은 `okpc579/saas-sample`의 `560bd8b0eb3686121055dd2a65432cc1d8e70b80`이며, 통합 프로젝트를 복사하지 않고 단일 `service_request` 업무로 재구성했다. 운영용 SaaS 완성 구현이 아니다.
-
-> 참고 저장소 원격 조회는 작업 환경의 네트워크 제한(HTTP 403)으로 실패했다. 따라서 제공된 장별 요구사항과 SHA를 설계 기준으로 삼았으며, 원본의 세부 명명은 복제하지 않았다.
+이 저장소는 SaaS 개발 참조 가이드 3.3의 공유 스키마 데이터 격리와 PostgreSQL RLS 보완 통제를 설명하는 교육·참조용 독립 Spring Boot 프로젝트다. 운영용 SaaS 완성 구현이 아니다.
 
 ## 2. 핵심 설계 개념
 
@@ -137,6 +135,6 @@ RLS는 테이블 소유자/BYPASSRLS 권한, connection pool 세션 누수, migr
 
 `postman/data-isolation.postman_collection.json`과 `postman/local.postman_environment.json`을 import하고 environment를 선택한 다음 애플리케이션을 실행한다. Collection Runner에서 `01. 정상 처리` 후 `02. 격리 및 오류` 순서로 실행한다. 최초 등록이 `request_id`를 자동 저장하며 상태 코드, tenant ID, 오류 코드를 검사한다. RLS 자체는 Postman만으로 애플리케이션 쿼리 조건과 구별할 수 없으므로 위 수동 SQL 또는 PostgreSQL 통합 환경에서 확인한다.
 
-## 10. 참고 구현과의 차이 및 운영 고려사항
+## 10. 예제의 제약 및 운영 고려사항
 
-독립 교육 예제를 위해 업무를 `service_request` 하나로 제한하고, 상세 인증 대신 두 검증 완료 헤더를 가정했다. 원격 원본을 확인하지 못했으므로 API/패키지 이름은 요구사항에 맞춰 새로 설계했다. 운영 적용에는 외부 IdP와 헤더 위조 차단, 사용자-tenant 소속 검증, 비밀 관리자, DB 역할/권한 분리, connection pool 초기화, 입력 Bean Validation, optimistic locking, 감사 로그, 관측성, PostgreSQL Testcontainers 통합 테스트, 백업·보존·고가용성 정책이 추가로 필요하다.
+독립 교육 예제를 위해 업무를 `service_request` 하나로 제한하고, 상세 인증 대신 두 검증 완료 헤더를 가정했다. 운영 적용에는 외부 IdP와 헤더 위조 차단, 사용자-tenant 소속 검증, 비밀 관리자, DB 역할/권한 분리, connection pool 초기화, 입력 Bean Validation, optimistic locking, 감사 로그, 관측성, PostgreSQL Testcontainers 통합 테스트, 백업·보존·고가용성 정책이 추가로 필요하다.
